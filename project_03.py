@@ -1,0 +1,170 @@
+from tkinter import *
+from tkinter.messagebox import *
+from tkinter.scrolledtext import *
+from sqlite3 import *
+
+def f1():
+	user.deiconify()
+	root.withdraw()
+
+def f2():
+	root.deiconify()
+	user.withdraw()
+
+def f3():
+	admin.deiconify()
+	root.withdraw()
+	ad_Data.delete(1.0, END)
+	con = None
+	try:
+		con = connect("ems.db")
+		cursor = con.cursor()
+		sql = "select * from user"
+		cursor.execute(sql)
+		data = cursor.fetchall()
+		info = ""
+		for d in data:
+			info = (info + "Name: " + str(d[0]) + "\n" + "Phone No: " + str(d[1]) + "\n" + "Address: " + str(d[2]) + "\n" + "PinCode: " + str(d[3]) + "\n" + "Choice: " + str(d[4])) + "\n" + "\n"
+		ad_Data.insert(INSERT, info)
+	except Exception as e:
+			showerror("ISSUE", e)
+	finally:
+		if con is not None:
+			con.close()
+
+def f4():
+	root.deiconify()
+	admin.withdraw()
+			
+def save():
+
+		name_text = us_NameEntry.get()
+		phone_text = us_PhoneEntry.get()
+		add_text = us_AddEntry.get()
+		pin_text = us_PinEntry.get()
+		if not name_text:
+			showerror("ERROR", "Enter your name...")
+		elif len(name_text) < 2:
+			showerror("ERROR", "Enter valid name...")
+		elif name_text.isdigit():
+        		showerror("ERROR", "Enter valid name...")
+		elif name_text == " ":
+			showerror("ERROR", "Enter your Name...")
+		elif len(phone_text) != 10 or not phone_text.isdigit():
+			showerror("ERROR", "Enter 10 digit Contact number...") 
+		elif not add_text:
+			showerror("ERROR", "Address cannot be blank...")
+		elif add_text == "":
+			showerror("Address cannot be space...")
+		elif len(pin_text) != 6 or not pin_text.isdigit():
+			showerror("ERROR", "Enter the valid Pin Code...") 
+		else:
+			con = None
+			try:
+				con = connect("ems.db")
+				cursor = con.cursor()
+				sql = "insert into user values('%s', '%d', '%s', '%d', '%s')"
+				name =  us_NameEntry.get()
+				phone = int(us_PhoneEntry.get())
+				address = us_AddEntry.get()
+				pin = int(us_PinEntry.get())
+				if c.get() == 1:
+					choice = "5KM"
+				elif c.get() == 2:
+					choice = "10KM"
+				else:
+					choice = "15KM"
+				cursor.execute(sql % (name, phone, address, pin, choice))
+				con.commit()	
+				showinfo("SUCCESS", "Record Created Successfully !!!")
+				us_NameEntry.delete(0, END)
+				us_PhoneEntry.delete(0, END)
+				us_AddEntry.delete(0, END)
+				us_PinEntry.delete(0, END)
+				c.set(1)
+				us_NameEntry.focus()
+			except Exception as e:
+				con.rollback()
+				showerror("ISSUE", e)
+			finally:
+				if con is not None:
+					con.close()
+
+root = Tk()
+root.title("Enquiry Managment System By Aditya Patil")
+root.geometry("770x700+300+1")
+ff = ("Georgia", 30, "bold")
+f = ("Century", 30)
+
+titleLabel = Label(root, text = "ENQUIRY MANAGEMENT SYSTEM", font = ff)
+titleLabel.place(x = 10, y = 10)
+
+userBtn = Button(root, text = "USER", font = ff, command = f1)
+userBtn.place(x = 300, y = 150)
+
+adminBtn = Button(root, text = "ADMIN", font = ff, command = f3)
+adminBtn.place(x = 285, y = 350)
+
+user = Toplevel(root)
+user.title("USER")
+user.geometry("1000x700+100+1")
+
+us_titleLabel = Label(user, text = "ENQUIRY MANAGEMENT SYSTEM", font = ff)
+us_titleLabel.place(x = 110, y = 1)
+
+us_NameLabel = Label(user, text = "Name: ", font = f)
+us_NameLabel.place(x = 30, y = 70)
+us_NameEntry = Entry(user, font = f)
+us_NameEntry.place(x = 300, y = 70)
+
+us_PhoneLabel = Label(user, text = "Phone No: ", font = f)
+us_PhoneLabel.place(x = 30, y = 170)
+us_PhoneEntry = Entry(user, font = f)
+us_PhoneEntry.place(x = 300, y = 170)
+
+us_AddLabel = Label(user, text = "Address: ", font = f)
+us_AddLabel.place(x = 30, y = 270)
+us_AddEntry = Entry(user, font = f)
+us_AddEntry.place(x = 300, y = 270)
+
+
+us_PinLabel = Label(user, text = "PinCode: ", font = f)
+us_PinLabel.place(x = 30, y = 370)
+us_PinEntry = Entry(user, font = f)
+us_PinEntry.place(x = 300, y = 370)
+
+c = IntVar()
+c.set(1)
+us_labChoice = Label(user, text = "Marathon Type", font = ff)
+us_labChoice.place(x = 300, y = 440)
+us_rb1 = Radiobutton(user, text = "5KM", font = ff, variable = c, value = 1)
+us_rb1.place(x = 10, y = 500)
+us_rb2 = Radiobutton(user, text = "10KM", font = ff, variable = c, value = 2)
+us_rb2.place(x = 350, y = 500)
+us_rb3 = Radiobutton(user, text = "15KM", font = ff, variable = c, value = 3)
+us_rb3.place(x = 700, y = 500)
+
+us_btn = Button(user, text = "Submit", font = ff, command = save)
+us_btn.place(x = 100, y = 600)
+
+us_bbtn = Button(user, text = "Back", font = ff, command = f2)
+us_bbtn.place(x = 600, y = 600)
+user.withdraw()
+
+admin = Toplevel(root)
+admin.title("ADMIN")
+admin.geometry("770x700+300+1")
+
+ad_Data = ScrolledText(admin, width = 30, height = 10, font =f)
+ad_Data.place(x = 10, y = 30)
+ad_BackBtn = Button(admin, text = "Back", font = ff, command = f4)
+ad_BackBtn.place(x = 300, y = 550)
+admin.withdraw()
+
+def confirmExit():
+	if askyesno("EXIT", "DO YOU REALLY WANT TO EXIT..."):
+		root.destroy()
+
+root.protocol('WM_DELETE_WINDOW', confirmExit)
+
+root.mainloop()
